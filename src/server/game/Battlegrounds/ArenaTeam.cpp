@@ -929,7 +929,7 @@ void ArenaTeam::UpdateArenaPointsHelper(std::map<ObjectGuid, uint32>& playerPoin
 
 void ArenaTeam::SaveToDB(bool forceMemberSave)
 {
-    if (TeamId >= 0xFFF00000)
+    if (TeamId >= 0xFFF00000) //
     {
         SaveSoloDB(this);
         return;
@@ -980,12 +980,12 @@ void ArenaTeam::SaveToDB(bool forceMemberSave)
     CharacterDatabase.CommitTransaction(trans);
 }
 
-void ArenaTeam::SaveSoloDB(ArenaTeam* team)
+void ArenaTeam::SaveSoloDB(ArenaTeam* team) //
 {
     if (!team)
         return;
 
-    // Init some variables for speedup the programm
+    // Init some variables for speedup the programm 
     ArenaTeam* realTeams[3];
     uint32 itrRealTeam = 0;
 
@@ -993,78 +993,78 @@ void ArenaTeam::SaveSoloDB(ArenaTeam* team)
         realTeams[itrRealTeam] = nullptr;
 
     itrRealTeam = 0;
-    uint32 oldRating = 0;
+    uint32 oldRating = 0; 
 
-    // First get the old average rating by looping through all members in temp team and add up the rating
+    // First get the old average rating by looping through all members in temp team and add up the rating 
     for (auto const& itr : team->GetMembers())
     {
-        ArenaTeam* plrArenaTeam = nullptr;
+        ArenaTeam* plrArenaTeam = nullptr; 
 
         // Find real arena team for player
-        for (auto const& itrMgr : sArenaTeamMgr->GetArenaTeams())
+        for (auto const& itrMgr : sArenaTeamMgr->GetArenaTeams()) 
         {
-            if (itrMgr.first < 0xFFF00000 && itrMgr.second->GetCaptain() == itr.Guid && itrMgr.second->GetType() == 4)
+            if (itrMgr.first < 0xFFF00000 && itrMgr.second->GetCaptain() == itr.Guid && itrMgr.second->GetType() == 4) 
             {
                 plrArenaTeam = itrMgr.second; // found!
-                LOG_ERROR("solo3v3", "SaveSoloDB - Found 3v3 Solo Team");
+                LOG_ERROR("solo3v3", "SaveSoloDB - Found 3v3 Solo Team"); 
                 break;
             }
         }
 
-        if (!plrArenaTeam)
+        if (!plrArenaTeam) 
             continue; // Not found? Maybe player has left the game and deleted it before the arena game ends.
 
         ASSERT(itrRealTeam < 3);
         realTeams[itrRealTeam++] = plrArenaTeam;
-
-        oldRating += plrArenaTeam->GetRating(); // add up all ratings from each player team
+         
+        oldRating += plrArenaTeam->GetRating(); // add up all ratings from each player team 
     }
 
-    if (team->GetMembersSize() > 0)
+    if (team->GetMembersSize() > 0) 
         oldRating /= team->GetMembersSize(); // Get average
-
+     
     int32 ratingModifier = team->GetRating() - oldRating; // GetRating() contains the new rating and oldRating is the old average rating
 
     itrRealTeam = 0;
-
+     
     // Let's loop again through temp arena team and add the new rating
-    for (auto const& _itr : team->GetMembers())
+    for (auto const& _itr : team->GetMembers()) 
     {
         ArenaTeam* plrArenaTeam = realTeams[itrRealTeam++];
 
-        if (!plrArenaTeam)
+        if (!plrArenaTeam) 
             continue;
-
+         
         ArenaTeamStats atStats = plrArenaTeam->GetStats();
-
+         
         if (int32(atStats.Rating) + ratingModifier < 0)
-            atStats.Rating = 0;
+            atStats.Rating = 0; 
         else
-            atStats.Rating += ratingModifier;
+            atStats.Rating += ratingModifier; 
 
-        atStats.SeasonGames = _itr.SeasonGames;
-        atStats.SeasonWins = _itr.SeasonWins;
-        atStats.WeekGames = _itr.WeekGames;
-        atStats.WeekWins = _itr.WeekWins;
+        atStats.SeasonGames = _itr.SeasonGames; 
+        atStats.SeasonWins = _itr.SeasonWins; 
+        atStats.WeekGames = _itr.WeekGames; 
+        atStats.WeekWins = _itr.WeekWins; 
 
-        for (auto realMemberItr : plrArenaTeam->GetMembers())
-        {
-            if (realMemberItr.Guid != plrArenaTeam->GetCaptain())
+        for (auto realMemberItr : plrArenaTeam->GetMembers()) 
+        { 
+            if (realMemberItr.Guid != plrArenaTeam->GetCaptain()) 
                 continue;
-
+             
             realMemberItr.PersonalRating = _itr.PersonalRating;
-            realMemberItr.MatchMakerRating = _itr.MatchMakerRating;
+            realMemberItr.MatchMakerRating = _itr.MatchMakerRating; 
             realMemberItr.SeasonGames = _itr.SeasonGames;
             realMemberItr.SeasonWins = _itr.SeasonWins;
             realMemberItr.WeekGames = _itr.WeekGames;
-            realMemberItr.WeekWins = _itr.WeekWins;
+            realMemberItr.WeekWins = _itr.WeekWins; 
         }
-
+         
         plrArenaTeam->SetArenaTeamStats(atStats);
-        plrArenaTeam->NotifyStatsChanged();
-        plrArenaTeam->SaveToDB();
-    }
-}
+        plrArenaTeam->NotifyStatsChanged(); 
+        plrArenaTeam->SaveToDB(); 
+    } 
+} 
 
 bool ArenaTeam::FinishWeek()
 {
@@ -1126,7 +1126,12 @@ void ArenaTeam::CreateTempArenaTeam(std::vector<Player*> playerList, uint8 type,
 {
     auto playerCountInTeam = static_cast<uint32>(playerList.size());
 
-    ASSERT(playerCountInTeam == GetReqPlayersForType(type));
+    //ASSERT(playerCountInTeam == GetReqPlayersForType(type));
+    // Solo Queue 3v3:
+    const auto standardArenaType = { ARENA_TYPE_2v2, ARENA_TYPE_3v3/*, ARENA_TYPE_5v5*/ };
+    bool isStandardArenaType = std::find(std::begin(standardArenaType), std::end(standardArenaType), type) != std::end(standardArenaType);
+    if (isStandardArenaType)
+        ASSERT(playerCountInTeam == GetReqPlayersForType(type));
 
     // Generate new arena team id
     TeamId = sArenaTeamMgr->GenerateTempArenaTeamId();

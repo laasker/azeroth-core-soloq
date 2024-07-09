@@ -2176,6 +2176,7 @@ public:
     void _RemoveAllStatBonuses();
 
     void ResetAllPowers();
+    void ResetMana();
 
     SpellSchoolMask GetMeleeDamageSchoolMask(WeaponAttackType attackType = BASE_ATTACK, uint8 damageIndex = 0) const override;
 
