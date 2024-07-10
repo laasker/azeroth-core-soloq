@@ -371,11 +371,11 @@ void Arena::EndBattleground(TeamId winnerTeamId)
         // save the stat changes
         if (bValidArena)
         {
-            winnerArenaTeam->SaveToDB();
+            winnerArenaTeam->SaveToDB(); 
             winnerArenaTeam->NotifyStatsChanged();
         }
 
-        loserArenaTeam->SaveToDB();
+        loserArenaTeam->SaveToDB(); 
         loserArenaTeam->NotifyStatsChanged();
     }
 
